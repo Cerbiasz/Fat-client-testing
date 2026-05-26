@@ -1,0 +1,195 @@
+[
+  {
+    "id": "CUSTOM001",
+    "name": "Hardcoded password in Oracle connection string",
+    "description": "An Oracle ODP.NET connection string contains a hardcoded password. This exposes database credentials in source code, compiled binaries, and version control history. Attackers who gain access to the codebase or decompile the assembly can extract these credentials. CWE-798: Use of Hard-coded Credentials.",
+    "recommendation": "Store Oracle database passwords in a secure vault (Azure Key Vault, HashiCorp Vault, DPAPI ProtectedData) or use Oracle Wallet / External Authentication. Never embed credentials in source code or config files checked into version control.",
+    "severity": "critical",
+    "confidence": "high",
+    "tags": [
+      "Cryptography.Credentials.Hardcoded",
+      "Oracle.ODP.NET",
+      "CWE-798"
+    ],
+    "rule_info": "CUSTOM001.md",
+    "patterns": [
+      {
+        "pattern": "Password\\s*=\\s*[\"'][^\"']+[\"']",
+        "type": "regex",
+        "scopes": ["code"],
+        "applies_to": ["csharp"],
+        "modifiers": ["i"]
+      },
+      {
+        "pattern": "Password\\s*=\\s*[^;\"'\\s]+",
+        "type": "regex",
+        "scopes": ["code"],
+        "applies_to": ["csharp"],
+        "modifiers": ["i"]
+      },
+      {
+        "pattern": "\\.Password\\s*=\\s*\"[^\"]+\"",
+        "type": "regex",
+        "scopes": ["code"],
+        "applies_to": ["csharp"]
+      },
+      {
+        "pattern": "Password\\s*=\\s*[^;\"'\\s]+",
+        "type": "regex",
+        "scopes": ["code"],
+        "applies_to": ["xml"]
+      }
+    ],
+    "does_not_apply_to": ["javascript", "python"]
+  },
+  {
+    "id": "CUSTOM002",
+    "name": "SQL injection via string concatenation in OracleCommand",
+    "description": "An OracleCommand or OracleDataAdapter is constructed using string concatenation or string interpolation to build SQL queries. This allows SQL injection attacks where an attacker can manipulate query logic, extract data, or execute administrative operations on the Oracle database. CWE-89: SQL Injection.",
+    "recommendation": "Use parameterized queries with OracleParameter objects. Replace string concatenation with bind variables (e.g., :paramName) and add parameters via OracleCommand.Parameters.Add().",
+    "severity": "critical",
+    "confidence": "high",
+    "tags": [
+      "Injection.SQL",
+      "Oracle.ODP.NET",
+      "CWE-89"
+    ],
+    "rule_info": "CUSTOM002.md",
+    "patterns": [
+      {
+        "pattern": "new\\s+OracleCommand\\s*\\(\\s*\"[^\"]*\"\\s*\\+",
+        "type": "regex",
+        "scopes": ["code"],
+        "applies_to": ["csharp"]
+      },
+      {
+        "pattern": "new\\s+OracleCommand\\s*\\(\\s*\\$\"[^\"]*\\{",
+        "type": "regex",
+        "scopes": ["code"],
+        "applies_to": ["csharp"]
+      },
+      {
+        "pattern": "new\\s+OracleDataAdapter\\s*\\(\\s*\"[^\"]*\"\\s*\\+",
+        "type": "regex",
+        "scopes": ["code"],
+        "applies_to": ["csharp"]
+      },
+      {
+        "pattern": "new\\s+OracleDataAdapter\\s*\\(\\s*\\$\"[^\"]*\\{",
+        "type": "regex",
+        "scopes": ["code"],
+        "applies_to": ["csharp"]
+      },
+      {
+        "pattern": "\\.CommandText\\s*=\\s*\"[^\"]*\"\\s*\\+",
+        "type": "regex",
+        "scopes": ["code"],
+        "applies_to": ["csharp"]
+      },
+      {
+        "pattern": "\\.CommandText\\s*=\\s*\\$\"[^\"]*\\{",
+        "type": "regex",
+        "scopes": ["code"],
+        "applies_to": ["csharp"]
+      }
+    ]
+  },
+  {
+    "id": "CUSTOM003",
+    "name": "Unsafe .NET deserialization with known insecure deserializer",
+    "description": "Usage of BinaryFormatter, SoapFormatter, NetDataContractSerializer, or LosFormatter detected. These deserializers are inherently insecure and can execute arbitrary code when processing untrusted data. Microsoft has deprecated BinaryFormatter as of .NET 8. CWE-502: Deserialization of Untrusted Data.",
+    "recommendation": "Replace insecure deserializers with safe alternatives: System.Text.Json.JsonSerializer, XmlSerializer (with known types only), or DataContractSerializer with a strict DataContractResolver. Never deserialize untrusted input with BinaryFormatter or similar classes.",
+    "severity": "critical",
+    "confidence": "high",
+    "tags": [
+      "Deserialization.Unsafe",
+      "DotNET",
+      "CWE-502"
+    ],
+    "rule_info": "CUSTOM003.md",
+    "patterns": [
+      {
+        "pattern": "new\\s+BinaryFormatter\\s*\\(",
+        "type": "regex",
+        "scopes": ["code"],
+        "applies_to": ["csharp"]
+      },
+      {
+        "pattern": "new\\s+SoapFormatter\\s*\\(",
+        "type": "regex",
+        "scopes": ["code"],
+        "applies_to": ["csharp"]
+      },
+      {
+        "pattern": "new\\s+NetDataContractSerializer\\s*\\(",
+        "type": "regex",
+        "scopes": ["code"],
+        "applies_to": ["csharp"]
+      },
+      {
+        "pattern": "new\\s+LosFormatter\\s*\\(",
+        "type": "regex",
+        "scopes": ["code"],
+        "applies_to": ["csharp"]
+      },
+      {
+        "pattern": "BinaryFormatter\\s*\\.\\s*Deserialize\\s*\\(",
+        "type": "regex",
+        "scopes": ["code"],
+        "applies_to": ["csharp"]
+      },
+      {
+        "pattern": "SoapFormatter\\s*\\.\\s*Deserialize\\s*\\(",
+        "type": "regex",
+        "scopes": ["code"],
+        "applies_to": ["csharp"]
+      },
+      {
+        "pattern": "NetDataContractSerializer\\s*\\.\\s*ReadObject\\s*\\(",
+        "type": "regex",
+        "scopes": ["code"],
+        "applies_to": ["csharp"]
+      },
+      {
+        "pattern": "LosFormatter\\s*\\.\\s*Deserialize\\s*\\(",
+        "type": "regex",
+        "scopes": ["code"],
+        "applies_to": ["csharp"]
+      }
+    ]
+  },
+  {
+    "id": "CUSTOM004",
+    "name": "Oracle connection without encryption — manual review required",
+    "description": "An OracleConnection or OracleConnectionStringBuilder is instantiated. Oracle connections transmit data in cleartext by default unless explicitly configured with encryption (e.g., Oracle Advanced Security / Native Network Encryption). Verify that the connection enforces encryption and data integrity. CWE-319: Cleartext Transmission of Sensitive Information.",
+    "recommendation": "Ensure the Oracle connection string or Oracle Net configuration (sqlnet.ora) includes encryption settings. For ODP.NET, verify sqlnet.ora contains: SQLNET.ENCRYPTION_CLIENT=REQUIRED and SQLNET.ENCRYPTION_TYPES_CLIENT=(AES256). Alternatively, configure TLS for the Oracle listener.",
+    "severity": "ManualReview",
+    "confidence": "low",
+    "tags": [
+      "Cryptography.Transport",
+      "Oracle.ODP.NET",
+      "CWE-319"
+    ],
+    "rule_info": "CUSTOM004.md",
+    "patterns": [
+      {
+        "pattern": "new\\s+OracleConnection\\s*\\(",
+        "type": "regex",
+        "scopes": ["code"],
+        "applies_to": ["csharp"]
+      },
+      {
+        "pattern": "new\\s+OracleConnectionStringBuilder\\s*\\(",
+        "type": "regex",
+        "scopes": ["code"],
+        "applies_to": ["csharp"]
+      },
+      {
+        "pattern": "OracleConnection\\s+\\w+\\s*=\\s*new\\s*\\(",
+        "type": "regex",
+        "scopes": ["code"],
+        "applies_to": ["csharp"]
+      }
+    ]
+  }
+]
