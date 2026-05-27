@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Security Scan Report</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; color: #24292f; padding: 32px; line-height: 1.5; background: #fff; font-size: 14px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+
+    h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+    h2 { font-size: 16px; font-weight: 600; margin: 28px 0 12px; padding-bottom: 6px; border-bottom: 1px solid #d0d7de; }
+    h3 { font-size: 14px; font-weight: 600; margin: 16px 0 8px; }
+    h4 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; color: #57606a; margin: 10px 0 4px; }
+
+    .meta { font-size: 12px; color: #57606a; margin-bottom: 24px; }
+    .meta span { margin-right: 14px; }
+    .meta code { background: #f6f8fa; padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+
+    /* Summary */
+    .summary-row { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    .summary-box { border: 1px solid #d0d7de; border-radius: 6px; padding: 12px 18px; text-align: center; min-width: 100px; }
+    .summary-box .num { font-size: 28px; font-weight: 600; }
+    .summary-box .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #57606a; }
+    .sev-critical .num { color: #cf222e; }
+    .sev-high .num { color: #bc4c00; }
+    .sev-medium .num { color: #9a6700; }
+    .sev-low .num { color: #1a7f37; }
+    .sev-info .num { color: #57606a; }
+
+    .risk-box { border: 1px solid #d0d7de; border-radius: 6px; padding: 12px 20px; text-align: center; min-width: 100px; }
+    .risk-box .num { font-size: 36px; font-weight: 700; }
+    .risk-box .lbl { font-size: 11px; text-transform: uppercase; color: #57606a; }
+
+    /* Severity labels */
+    .sev { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 3px; text-transform: uppercase; }
+    .sev-c { background: #ffebe9; color: #cf222e; }
+    .sev-h { background: #fff1e5; color: #bc4c00; }
+    .sev-m { background: #fff8c5; color: #9a6700; }
+    .sev-l { background: #dafbe1; color: #1a7f37; }
+    .sev-i { background: #f6f8fa; color: #57606a; }
+
+    /* Filters */
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; align-items: center; font-size: 13px; }
+    .filters label { color: #57606a; }
+    .filters select, .filters input { border: 1px solid #d0d7de; border-radius: 4px; padding: 3px 6px; font-size: 13px; background: #fff; }
+
+    /* Table */
+    table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+    th { text-align: left; font-size: 12px; font-weight: 600; padding: 8px 10px; border-bottom: 2px solid #d0d7de; background: #f6f8fa; cursor: pointer; user-select: none; white-space: nowrap; }
+    th:hover { color: #0969da; }
+    td { padding: 6px 10px; border-bottom: 1px solid #eaeef2; font-size: 13px; vertical-align: top; }
+    .finding-row { cursor: pointer; }
+    .finding-row:hover { background: #f6f8fa; }
+    .file-cell { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Detail panel */
+    .detail-box { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; padding: 14px; margin: 4px 0 8px; }
+    .detail-meta { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: #57606a; margin-bottom: 10px; }
+    .detail-meta code { background: #fff; padding: 1px 4px; border-radius: 3px; border: 1px solid #eaeef2; font-size: 12px; }
+    .detail-section { margin-bottom: 10px; }
+    .detail-section p { font-size: 13px; }
+    .code-block { background: #fff; border: 1px solid #d0d7de; border-radius: 4px; padding: 10px; font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace; font-size: 12px; overflow-x: auto; white-space: pre; line-height: 1.6; }
+    .detail-section a { color: #0969da; text-decoration: none; }
+    .detail-section a:hover { text-decoration: underline; }
+
+    /* Top 5 */
+    .top5 ol { padding-left: 18px; margin: 4px 0; }
+    .top5 li { margin: 4px 0; font-size: 13px; }
+    .top5 code { background: #f6f8fa; padding: 1px 4px; border-radius: 3px; font-size: 12px; }
+
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 800px) { .stats-grid { grid-template-columns: 1fr; } }
+
+    .bar-row { display: flex; align-items: center; margin: 3px 0; }
+    .bar-label { width: 170px; font-size: 12px; text-align: right; padding-right: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bar-container { flex: 1; height: 16px; background: #eaeef2; border-radius: 3px; overflow: hidden; }
+    .bar-fill { height: 100%; background: #0969da; border-radius: 3px; }
+    .bar-count { width: 36px; text-align: right; font-size: 12px; color: #57606a; padding-left: 6px; }
+
+    .footer { margin-top: 28px; padding-top: 12px; border-top: 1px solid #d0d7de; font-size: 11px; color: #8c959f; text-align: center; }
+
+    @media print {
+        body { padding: 12px; font-size: 11px; }
+        .filters { display: none; }
+        .detail-row { display: table-row !important; break-inside: avoid; }
+        .finding-row { break-inside: avoid; }
+    }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Security Scan Report</h1>
+<div class="meta">
+    <span>{{SCAN_DATE}}</span>
+    <span>Source: <code>{{SOURCE_PATH}}</code></span>
+    <span>Files: {{TOTAL_FILES}}</span>
+    <span>Lines: {{TOTAL_LINES}}</span>
+    <span>Duration: {{DURATION}}s</span>
+    <span>Rules: {{RULES_APPLIED}}</span>
+</div>
+
+<h2>Summary</h2>
+<div class="summary-row">
+    <div class="risk-box">
+        <div class="num" style="color:{{RISK_COLOR}}">{{RISK_SCORE}}</div>
+        <div class="lbl">Risk Score</div>
+    </div>
+    <div class="summary-box sev-critical"><div class="num">{{CRITICAL_COUNT}}</div><div class="lbl">Critical</div></div>
+    <div class="summary-box sev-high"><div class="num">{{HIGH_COUNT}}</div><div class="lbl">High</div></div>
+    <div class="summary-box sev-medium"><div class="num">{{MEDIUM_COUNT}}</div><div class="lbl">Medium</div></div>
+    <div class="summary-box sev-low"><div class="num">{{LOW_COUNT}}</div><div class="lbl">Low</div></div>
+    <div class="summary-box sev-info"><div class="num">{{INFO_COUNT}}</div><div class="lbl">Info</div></div>
+</div>
+
+<div class="top5">
+    <h3>Top Findings</h3>
+    <ol>{{TOP5_FINDINGS}}</ol>
+</div>
+
+<h2>Findings ({{TOTAL_FINDINGS}})</h2>
+<div class="filters">
+    <label>Severity:</label>
+    <select id="filterSeverity" onchange="filterFindings()">
+        <option value="all">All</option>
+        <option value="critical">Critical</option>
+        <option value="high">High</option>
+        <option value="medium">Medium</option>
+        <option value="low">Low</option>
+        <option value="info">Info</option>
+    </select>
+    <label>Confidence:</label>
+    <select id="filterConfidence" onchange="filterFindings()">
+        <option value="all">All</option>
+        <option value="High">High</option>
+        <option value="Medium">Medium</option>
+        <option value="Low">Low</option>
+    </select>
+    <label>Search:</label>
+    <input type="text" id="filterSearch" placeholder="Rule, file, category..." oninput="filterFindings()" style="width:180px">
+</div>
+
+<table id="findingsTable">
+    <thead>
+        <tr>
+            <th onclick="sortTable(0)">Severity</th>
+            <th onclick="sortTable(1)">Rule</th>
+            <th onclick="sortTable(2)">Category</th>
+            <th onclick="sortTable(3)">File</th>
+            <th onclick="sortTable(4)">Line</th>
+            <th onclick="sortTable(5)">Confidence</th>
+            <th onclick="sortTable(6)">CWE</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{FINDINGS_ROWS}}
+    </tbody>
+</table>
+
+<h2>Statistics</h2>
+<div class="stats-grid">
+    <div>
+        <h3>Most Affected Files</h3>
+        <table>
+            <tr><th>File</th><th>Count</th></tr>
+            {{FILE_STATS_ROWS}}
+        </table>
+    </div>
+    <div>
+        <h3>By Category</h3>
+        {{CATEGORY_STATS}}
+    </div>
+</div>
+
+<h2>Manual Review (Low Confidence)</h2>
+<table>
+    <tr><th>Rule</th><th>Category</th><th>Location</th><th>Note</th></tr>
+    {{LOW_CONF_ROWS}}
+</table>
+
+<div class="footer">
+    .NET Security Scanner v2.2.0 &mdash; {{SCAN_DATE}}
+</div>
+
+</div>
+
+<script>
+function toggleDetail(id) {
+    var row = document.getElementById(id);
+    if (row) row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+}
+
+function filterFindings() {
+    var sev = document.getElementById('filterSeverity').value;
+    var conf = document.getElementById('filterConfidence').value;
+    var search = document.getElementById('filterSearch').value.toLowerCase();
+    var rows = document.querySelectorAll('.finding-row');
+
+    for (var i = 0; i < rows.length; i++) {
+        var row = rows[i];
+        var detailId = row.getAttribute('onclick').match(/'([^']+)'/)[1];
+        var detail = document.getElementById(detailId);
+        var show = true;
+
+        if (sev !== 'all' && row.dataset.severity !== sev) show = false;
+        if (conf !== 'all' && row.dataset.confidence !== conf) show = false;
+        if (search && row.textContent.toLowerCase().indexOf(search) === -1 &&
+            row.dataset.file.toLowerCase().indexOf(search) === -1 &&
+            row.dataset.category.toLowerCase().indexOf(search) === -1) show = false;
+
+        row.style.display = show ? '' : 'none';
+        if (detail && !show) detail.style.display = 'none';
+    }
+}
+
+function sortTable(colIdx) {
+    var table = document.getElementById('findingsTable');
+    var tbody = table.tBodies[0];
+    var rowPairs = [];
+
+    for (var i = 0; i < tbody.rows.length; i += 2) {
+        rowPairs.push([tbody.rows[i], tbody.rows[i+1]]);
+    }
+
+    var sevOrder = { critical: 0, high: 1, medium: 2, low: 3, info: 4 };
+
+    rowPairs.sort(function(a, b) {
+        var aVal = (a[0].cells[colIdx] ? a[0].cells[colIdx].textContent : '').trim().toLowerCase();
+        var bVal = (b[0].cells[colIdx] ? b[0].cells[colIdx].textContent : '').trim().toLowerCase();
+
+        if (colIdx === 0) return (sevOrder[aVal] || 5) - (sevOrder[bVal] || 5);
+        if (colIdx === 4) return parseInt(aVal) - parseInt(bVal);
+        return aVal.localeCompare(bVal);
+    });
+
+    for (var j = 0; j < rowPairs.length; j++) {
+        tbody.appendChild(rowPairs[j][0]);
+        tbody.appendChild(rowPairs[j][1]);
+    }
+}
+</script>
+</body>
+</html>
